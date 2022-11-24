@@ -1,0 +1,47 @@
+select x.dept_id,x.total_amount_y,z.total_amount_q,y.total_amount_m,a.total_amount_w,b.total_amount_d from
+(select  dept_id,sum(cast(sales_amt as money)) as total_amount_y
+from AGG_STR_DEPT_CLASS_TMX_TEMP 
+join dim_calendar_t 
+on tran_dt = cal_date
+where year(cal_date)= year('2022-04-03')
+group by dept_id
+) x
+join
+--- monthly sales
+(select  dept_id,sum(cast(sales_amt as money)) as total_amount_m
+from AGG_STR_DEPT_CLASS_TMX_TEMP 
+join dim_calendar_t 
+on tran_dt = cal_date
+where month(cal_date) = month('2022-04-03')
+group by dept_id
+) y 
+on x.dept_id = y.dept_id
+--quarter sales
+join
+(select  dept_id,sum(cast(sales_amt as money)) as total_amount_q
+from AGG_STR_DEPT_CLASS_TMX_TEMP 
+join dim_calendar_t 
+on tran_dt = cal_date
+where datepart(qq,cal_date) = datepart(qq,'2022-04-03')
+group by dept_id ) z 
+on
+x.dept_id = z.dept_id
+--weekly sales
+join
+(select  dept_id,sum(cast(sales_amt as money)) as total_amount_w
+from AGG_STR_DEPT_CLASS_TMX_TEMP 
+join dim_calendar_t 
+on tran_dt = cal_date
+where datepart(WEEK,cal_date) = datepart(week,'2022-04-03')
+group by dept_id) a
+on x.dept_id = a.dept_id
+join
+--daily sales
+(select  dept_id,sum(cast(sales_amt as money)) as total_amount_d
+from AGG_STR_DEPT_CLASS_TMX_TEMP 
+join dim_calendar_t 
+on tran_dt = cal_date
+where datepart(day,cal_date) = datepart(day,'2022-04-03')
+group by dept_id ) b
+on x.dept_id = b.dept_id
+order by dept_id asc
